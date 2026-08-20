@@ -68,3 +68,44 @@ export const createCrosshair = (
 
   return crosshair
 }
+
+export function resizeCrosshair(crosshair: Rectangle): void {
+  const originalScale = 1
+  const expandedScale = 1.35
+  const expandDuration = 50
+  const shrinkDuration = 100
+  const startTime = performance.now()
+
+  const animate = (time: number) => {
+    const elapsed = time - startTime
+
+    if (elapsed < expandDuration) {
+      const progress = elapsed / expandDuration
+      const scale = originalScale + (expandedScale - originalScale) * progress
+
+      crosshair.scaleX = scale
+      crosshair.scaleY = scale
+
+      requestAnimationFrame(animate)
+      return
+    }
+
+    const shrinkElapsed = elapsed - expandDuration
+
+    if (shrinkElapsed < shrinkDuration) {
+      const progress = shrinkElapsed / shrinkDuration
+      const scale = expandedScale - (expandedScale - originalScale) * progress
+
+      crosshair.scaleX = scale
+      crosshair.scaleY = scale
+
+      requestAnimationFrame(animate)
+      return
+    }
+
+    crosshair.scaleX = originalScale
+    crosshair.scaleY = originalScale
+  }
+
+  requestAnimationFrame(animate)
+}
