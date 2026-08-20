@@ -25,3 +25,87 @@ body {
   box-shadow:
     0 20px 60px rgba(0, 0, 0, 0.5);
 }
+
+#crosshair {
+  --crosshair-scale: 1.5;
+
+  position: fixed;
+  left: 50%;
+  top: 50%;
+  width: calc(40px * var(--crosshair-scale));
+  height: calc(40px * var(--crosshair-scale));
+  transform: translate(-50%, -50%);
+  pointer-events: none;
+  z-index: 1000;
+}
+
+.crosshair-dot {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: calc(4px * var(--crosshair-scale));
+  height: calc(4px * var(--crosshair-scale));
+  background: lime;
+  border-radius: 50%;
+  transform: translate(-50%, -50%);
+  /*box-shadow: 0 0 calc(4px * var(--crosshair-scale)) black;*/
+}
+
+.crosshair-line {
+  position: absolute;
+  background: lime;
+  /*box-shadow: 0 0 calc(4px * var(--crosshair-scale)) black;*/
+  transition:
+    top 60ms ease-out,
+    bottom 60ms ease-out,
+    left 60ms ease-out,
+    right 60ms ease-out;
+}
+
+.crosshair-top {
+  left: 50%;
+  top: calc(7px * var(--crosshair-scale));
+  width: calc(2px * var(--crosshair-scale));
+  height: calc(8px * var(--crosshair-scale));
+  transform: translateX(-50%);
+}
+
+.crosshair-bottom {
+  left: 50%;
+  bottom: calc(7px * var(--crosshair-scale));
+  width: calc(2px * var(--crosshair-scale));
+  height: calc(8px * var(--crosshair-scale));
+  transform: translateX(-50%);
+}
+
+.crosshair-left {
+  left: calc(7px * var(--crosshair-scale));
+  top: 50%;
+  width: calc(8px * var(--crosshair-scale));
+  height: calc(2px * var(--crosshair-scale));
+  transform: translateY(-50%);
+}
+
+.crosshair-right {
+  right: calc(7px * var(--crosshair-scale));
+  top: 50%;
+  width: calc(8px * var(--crosshair-scale));
+  height: calc(2px * var(--crosshair-scale));
+  transform: translateY(-50%);
+}
+
+#crosshair.crosshair-expanded .crosshair-top {
+  top: 0;
+}
+
+#crosshair.crosshair-expanded .crosshair-bottom {
+  bottom: 0;
+}
+
+#crosshair.crosshair-expanded .crosshair-left {
+  left: 0;
+}
+
+#crosshair.crosshair-expanded .crosshair-right {
+  right: 0;
+}

@@ -1,79 +1,121 @@
 import {
-  Engine,
-  HemisphericLight,
-  Mesh,
-  Scene,
-  UniversalCamera,
-  Vector3
-} from "@babylonjs/core"
-import { AdvancedDynamicTexture } from "@babylonjs/gui"
-import { createCrosshair, resizeCrosshair } from "./crosshair"
-import { createDebugText } from "./debug_hud"
-import { createImpactEffect, createImpactEffect2 } from "./hitEffect"
-import { createGunSound } from "./hitsound"
-import { createSkybox } from "./skybox"
-import { createBangSound, createBarrel, reduceHealth, triggerBarrelHit } from "./barrel.ts"
-import { createWall } from "./wall.ts"
+  addToScene,
+  createBox,
+  createCylinder,
+  createDefaultCamera,
+  createEngine,
+  createHemisphericLight,
+  createPbrMaterial,
+  createSceneContext,
+  createSphere,
+  registerScene,
+  startEngine
+} from "@babylonjs/lite"
+import { animateCrosshair, setCrosshairScale } from "./new_crosshair.ts"
 
-const canvas = document.querySelector<HTMLCanvasElement>("#app")
+async function main(): Promise<void> {
 
-const engine = new Engine(canvas, true)
+  const canvas = document.querySelector<HTMLCanvasElement>("#app")
+  if (!canvas) {
+    throw new Error("Canvas element #app not found")
+  }
 
-const scene = new Scene(engine)
+  const engine = await createEngine(canvas)
 
-// Skybox
+  const scene = createSceneContext(engine)
 
-createSkybox(scene)
+  addToScene(scene, createCylinder(engine, { diameter: 2, height: 2 }))
+  addToScene(scene, createBox(engine, { size: 2 }))
+  addToScene(scene, createHemisphericLight([0, 1, 0], 1.0))
+  // get mouse poss
 
-// Light
-const light = new HemisphericLight("light", new Vector3(0, 1, 0), scene)
+  // const camera = createDefaultCamera(scene)
+  // const alpha = 1.77538207638442;
 
-light.intensity = 1
+  // const camera = createArcRotateCamera(-Math.PI / 2, Math.PI / 2.5, 4, { x: 0, y: 0, z: 0 });
+  const camera = createDefaultCamera(scene)
+  scene.camera = camera
+  // attachControl(camera, canvas, scene);
+  // Light
+  addToScene(scene, createHemisphericLight([0, 1, 0], 1.0))
+  const crosshair = document.getElementById("crosshair")
+  if (!crosshair) {
+    return
+  }
+  setCrosshairScale(2.5)
+  canvas.onmousemove = (event) => {
+    crosshair.style.left = event.clientX + "px"
+    crosshair.style.top = event.clientY + "px"
+    // aim.style.display = "block"
+    // aim.style.opacity = "0.5"
+    // aim.style.pointerEvents = "none"
+    // aim.style.zIndex = "1000"
+  }
+  canvas.onmousedown = (event ) => {
+    animateCrosshair()
+  }
 
-// crosshair
-const ui = AdvancedDynamicTexture.CreateFullscreenUI("UI")
-const crosshair = createCrosshair(ui, "lime", 2.5)
 
-scene.onPointerMove = () => {
-  crosshair.left = scene.pointerX - engine.getRenderWidth() / 2
-  crosshair.top = scene.pointerY - engine.getRenderHeight() / 2
+// A sphere with a simple PBR material
+  const sphere = createSphere(engine, { segments: 16, diameter: 2 })
+  sphere.material = createPbrMaterial({
+    baseColorFactor: [0.9, 0.1, 0.1, 1],
+    metallicFactor: 0.1,
+    roughnessFactor: 0.4
+  })
+  sphere.position.set(0, 0, 8)
+
+  const box = createBox(engine, { size: 2, height: 2, width: 2, depth: 2 })
+  box.position.set(-3, 0, 8)
+  box.material = createPbrMaterial({ baseColorFactor: [0.9, 0.5, 0.1, 1], metallicFactor: 0.1, roughnessFactor: 0.4 })
+  addToScene(scene, box)
+  addToScene(scene, sphere)
+
+
+  await registerScene(scene)
+  await startEngine(engine)
 }
+
+main().catch((err) => {
+  console.error(err)
+})
+// const ui = AdvancedDynamicTexture.CreateFullscreenUI("UI")
+// const crosshair = createCrosshair(ui, "lime", 2.5)
+
+// scene.onPointerMove = () => {
+//   crosshair.left = scene.pointerX - engine.getRenderWidth() / 2
+//   crosshair.top = scene.pointerY - engine.getRenderHeight() / 2
+// }
+
 
 /*****************************************************************/
 
-const debugText = createDebugText(ui, "")
+// const debugText = createDebugText(ui, "")
 
-const camera = new UniversalCamera("camera", new Vector3(0, 1.7, -30), scene)
+// const camera = createUniversalCamera("camera", new Vector3(0, 1.7, -30), scene)
 
-const cameraBaseRotationX = camera.rotation.x
-const cameraBaseRotationY = camera.rotation.y
+// const cameraBaseRotationX = camera.rotation.x
+// const cameraBaseRotationY = camera.rotation.y
 let recoilX = 0
 let recoilY = 0
 
-const applyRecoil = (factor: number = 1 ) => {
-  const strength = 0.006 + Math.random() * 0.004
-  recoilX = Math.min(recoilX + strength, 0.05) * factor
-  recoilY = Math.max(-0.015, Math.min(0.015, recoilY + (Math.random() - 0.5) * 0.003))  * factor
-}
+// const applyRecoil = (factor: number = 1) => {
+//   const strength = 0.006 + Math.random() * 0.004
+//   recoilX = Math.min(recoilX + strength, 0.05) * factor
+//   recoilY = Math.max(-0.015, Math.min(0.015, recoilY + (Math.random() - 0.5) * 0.003)) * factor
+// }
 
-scene.onBeforeRenderObservable.add(() => {
-  recoilX *= 0.85
-  recoilY *= 0.85
-  camera.rotation.x = cameraBaseRotationX - recoilX
-  camera.rotation.y = cameraBaseRotationY + recoilY
-})
+// scene.onBeforeRenderObservable.add(() => {
+//   recoilX *= 0.85
+//   recoilY *= 0.85
+//   camera.rotation.x = cameraBaseRotationX - recoilX
+//   camera.rotation.y = cameraBaseRotationY + recoilY
+// })
 
 
-const targetMeshes: Mesh[] = []
-createTargets()
-function clearTargets(): void {
-  for (const target of targetMeshes) {
-    target.dispose()
-  }
+// createTargets()
 
-  targetMeshes.length = 0
-}
-
+/*
 
 function createTargets(): void {
   const box = createWall(scene)
@@ -120,7 +162,7 @@ const hit = scene.pick(scene.pointerX, scene.pointerY)
 if (hit.hit && hit.pickedPoint) {
   createImpactEffect(scene, hit.pickedPoint)
 }
-const gunshot = await createGunSound()
+const Gunshot = await createGunSound()
 await createBangSound()
 const automaticFire = true
 
@@ -185,3 +227,5 @@ window.addEventListener("keydown", async (event) => {
     restartGame()
   }
 })
+
+ */
